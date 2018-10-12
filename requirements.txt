@@ -1,1 +1,2 @@
 eyewitness==0.28
+matplotlib
