@@ -100,6 +100,7 @@ class YOLO(object):
         return boxes, scores, classes
 
     def predict(self, image):
+        start = timer()
         if self.model_image_size != (None, None):
             assert self.model_image_size[0]%32 == 0, 'Multiples of 32 required'
             assert self.model_image_size[1]%32 == 0, 'Multiples of 32 required'
@@ -121,10 +122,11 @@ class YOLO(object):
                 self.input_image_shape: [image.size[1], image.size[0]],
                 K.learning_phase(): 0
             })
+        end = timer()
+        print('detect time :', end - start)
         return (out_boxes, out_scores, out_classes)
 
     def detect_image(self, image):
-        start = timer()
         (out_boxes, out_scores, out_classes) = self.predict(image)
 
         print('Found {} boxes for {}'.format(len(out_boxes), 'img'))
@@ -164,9 +166,6 @@ class YOLO(object):
                 fill=self.colors[c])
             draw.text(text_origin, label, fill=(0, 0, 0), font=font)
             del draw
-
-        end = timer()
-        print(end - start)
         return image
 
     def close_session(self):
