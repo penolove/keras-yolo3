@@ -99,9 +99,7 @@ class YOLO(object):
                 score_threshold=self.score, iou_threshold=self.iou)
         return boxes, scores, classes
 
-    def detect_image(self, image):
-        start = timer()
-
+    def predict(self, image):
         if self.model_image_size != (None, None):
             assert self.model_image_size[0]%32 == 0, 'Multiples of 32 required'
             assert self.model_image_size[1]%32 == 0, 'Multiples of 32 required'
@@ -123,6 +121,11 @@ class YOLO(object):
                 self.input_image_shape: [image.size[1], image.size[0]],
                 K.learning_phase(): 0
             })
+        return (out_boxes, out_scores, out_classes)
+
+    def detect_image(self, image):
+        start = timer()
+        (out_boxes, out_scores, out_classes) = self.predict(image)
 
         print('Found {} boxes for {}'.format(len(out_boxes), 'img'))
 
