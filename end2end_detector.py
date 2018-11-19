@@ -51,7 +51,7 @@ class InMemoryImageProducer(ImageProducer):
 
     def produce_image(self) -> np.array:
         _, frame = self.vid.read()
-        yield Image.fromarray(frame)
+        yield Image.fromarray(swap_channel_rgb_bgr(frame))
         cv2.waitKey(self.interval_ms)
         
 
@@ -83,7 +83,7 @@ if __name__ == '__main__':
     image_producer = InMemoryImageProducer(0)  # image producer from webcam
 
     while True:
-        image = swap_channel_rgb_bgr(image_producer.produce_image())
+        image = image_producer.produce_image()
         image_id = ImageId(channel='demo', timestamp=arrow.now().timestamp, file_format='jpg')
         detection_result = object_detector.detect(image, image_id)
         # ImageHandler.draw_bbox(image, detection_result.detected_objects)
