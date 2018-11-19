@@ -81,8 +81,16 @@ class YoloV3DetectorWrapper(ObjectDetector):
 
 if __name__ == '__main__':
     model_config = parser.parse_args()
+
+    # image producer from webcam
+    image_producer = InMemoryImageProducer(0)  
+
+    # object detector
     object_detector = YoloV3DetectorWrapper(model_config)
-    image_producer = InMemoryImageProducer(0)  # image producer from webcam
+
+    # TODO: detection_handler: write db, line brocast
+
+    # TODO: feedback_handler: webhook handling
 
     for image in image_producer.produce_image():
         image_id = ImageId(channel='demo', timestamp=arrow.now().timestamp, file_format='jpg')
