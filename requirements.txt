@@ -1,2 +1,2 @@
-eyewitness==0.28
+eyewitness==0.32
 matplotlib
