@@ -70,6 +70,7 @@ class YoloV3DetectorWrapper(ObjectDetector):
             if score > self.threshold:
                 detected_objects.append([x1, y1, x2, y2, label, score, ''])
 
+        print("detected %s objects" % len(detected_objects))
         image_dict = {
             'image_id': image_id,
             'detected_objects': detected_objects,
