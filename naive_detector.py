@@ -1,6 +1,6 @@
 import argparse
-from typing import Union
 
+import arrow
 from eyewitness.detection_utils import DetectionResult
 from eyewitness.image_id import ImageId
 from eyewitness.object_detector import ObjectDetector
@@ -41,7 +41,7 @@ class YoloV3DetectorWrapper(ObjectDetector):
         self.core_model = YOLO(**vars(model_config))
         self.threshold = threshold
 
-    def detect(self, image: Image, image_id: Union[str, ImageId]) -> DetectionResult:
+    def detect(self, image: Image, image_id: ImageId) -> DetectionResult:
         (out_boxes, out_scores, out_classes) = self.core_model.predict(image)
         detected_objects = []
         for bbox, score, label_class in zip(out_boxes, out_scores, out_classes):
@@ -62,6 +62,7 @@ if __name__ == '__main__':
     model_config = parser.parse_args()
     object_detector = YoloV3DetectorWrapper(model_config)
     image = Image.open('demo/test_image.jpg')
-    detection_result = object_detector.detect(image, './5566.jpg')
+    image_id = ImageId(channel='demo', timestamp=arrow.now().timestamp, file_format='jpg')
+    detection_result = object_detector.detect(image, image_id)
     ImageHandler.draw_bbox(image, detection_result.detected_objects)
     ImageHandler.save(image, detection_result.image_id)
