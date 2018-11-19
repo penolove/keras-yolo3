@@ -6,7 +6,7 @@ import numpy as np
 from eyewitness.detection_utils import DetectionResult
 from eyewitness.image_id import ImageId
 from eyewitness.object_detector import ObjectDetector
-from eyewitness.image_utils import ImageProducer
+from eyewitness.image_utils import (ImageProducer, swap_channel_rgb_bgr)
 from eyewitness.config import IN_MEMORY
 from PIL import Image
 
@@ -51,7 +51,7 @@ class InMemoryImageProducer(ImageProducer):
 
     def produce_image(self) -> np.array:
         _, frame = self.vid.read()
-        yield frame
+        yield Image.fromarray(frame)
         cv2.waitKey(self.interval_ms)
         
 
@@ -83,7 +83,7 @@ if __name__ == '__main__':
     image_producer = InMemoryImageProducer(0)  # image producer from webcam
 
     while True:
-        image = image_producer.produce_image()
+        image = swap_channel_rgb_bgr(image_producer.produce_image())
         image_id = ImageId(channel='demo', timestamp=arrow.now().timestamp, file_format='jpg')
         detection_result = object_detector.detect(image, image_id)
         # ImageHandler.draw_bbox(image, detection_result.detected_objects)
