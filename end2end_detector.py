@@ -49,10 +49,11 @@ class InMemoryImageProducer(ImageProducer):
     def produce_method(self):
         return IN_MEMORY
 
-    def produce_image(self) -> np.array:
-        _, frame = self.vid.read()
-        yield Image.fromarray(swap_channel_rgb_bgr(frame))
-        cv2.waitKey(self.interval_ms)
+    def produce_image(self):
+        while True:
+            _, frame = self.vid.read()
+            yield Image.fromarray(swap_channel_rgb_bgr(frame))
+            cv2.waitKey(self.interval_ms)
         
 
 class YoloV3DetectorWrapper(ObjectDetector):
@@ -82,8 +83,7 @@ if __name__ == '__main__':
     object_detector = YoloV3DetectorWrapper(model_config)
     image_producer = InMemoryImageProducer(0)  # image producer from webcam
 
-    while True:
-        image = image_producer.produce_image()
+    for image in image_producer.produce_image():
         image_id = ImageId(channel='demo', timestamp=arrow.now().timestamp, file_format='jpg')
         detection_result = object_detector.detect(image, image_id)
         # ImageHandler.draw_bbox(image, detection_result.detected_objects)
