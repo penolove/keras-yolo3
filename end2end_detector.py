@@ -2,12 +2,13 @@ import argparse
 
 import arrow
 import cv2
-import numpy as np
+from eyewitness.config import IN_MEMORY
 from eyewitness.detection_utils import DetectionResult
 from eyewitness.image_id import ImageId
+from eyewitness.image_utils import (ImageProducer, swap_channel_rgb_bgr, ImageHandler)
 from eyewitness.object_detector import ObjectDetector
-from eyewitness.image_utils import (ImageProducer, swap_channel_rgb_bgr)
-from eyewitness.config import IN_MEMORY
+from eyewitness.result_handler.sqlite_db_writer import BboxPeeweeSQLiteDbWriter
+
 from PIL import Image
 
 from yolo import YOLO
@@ -38,6 +39,14 @@ parser.add_argument(
     help='Number of GPU to use, default: ' + str(YOLO.get_defaults("gpu_num"))
 )
 
+parser.add_argument(
+    '--db_path', type=str, default='::memory::',
+    help='the path used to store detection result records')
+
+parser.add_argument(
+    '--interval_ms', type=int, default=5000,
+    help='the interval of image generation')
+
 
 class InMemoryImageProducer(ImageProducer):
     def __init__(self, video_path, interval_ms=1000):
@@ -51,10 +60,13 @@ class InMemoryImageProducer(ImageProducer):
 
     def produce_image(self):
         while True:
+            # clean buffer hack: for Linux V4L capture backend with a internal fifo
+            for iter_ in range(5):
+                self.vid.grab()
             _, frame = self.vid.read()
             yield Image.fromarray(swap_channel_rgb_bgr(frame))
             cv2.waitKey(self.interval_ms)
-        
+
 
 class YoloV3DetectorWrapper(ObjectDetector):
     def __init__(self, model_config, threshold=0.5):
@@ -80,20 +92,29 @@ class YoloV3DetectorWrapper(ObjectDetector):
 
 
 if __name__ == '__main__':
-    model_config = parser.parse_args()
-
+    args = parser.parse_args()
     # image producer from webcam
-    image_producer = InMemoryImageProducer(0)  
+    image_producer = InMemoryImageProducer(0, interval_ms=args.interval_ms)
 
     # object detector
-    object_detector = YoloV3DetectorWrapper(model_config)
+    object_detector = YoloV3DetectorWrapper(args)
+    bbox_sqlite_handler = BboxPeeweeSQLiteDbWriter(args.db_path)
 
-    # TODO: detection_handler: write db, line brocast
+    # TODO: Line detection result handler
 
     # TODO: feedback_handler: webhook handling
 
     for image in image_producer.produce_image():
         image_id = ImageId(channel='demo', timestamp=arrow.now().timestamp, file_format='jpg')
+        bbox_sqlite_handler.register_image(image_id, {})
         detection_result = object_detector.detect(image, image_id)
-        # ImageHandler.draw_bbox(image, detection_result.detected_objects)
-        # ImageHandler.save(image, "demo/drawn_image.jpg")
+
+        # draw and save image, update detection result
+        drawn_image_path = "detected_image/%s_%s.%s" % (
+            image_id.channel, image_id.timestamp, image_id.file_format)
+        ImageHandler.draw_bbox(image, detection_result.detected_objects)
+        ImageHandler.save(image, drawn_image_path)
+        detection_result.image_dict['drawn_image_path'] = drawn_image_path
+
+        # update image_info drawn_image_path, insert detection result
+        bbox_sqlite_handler.handle(detection_result)
