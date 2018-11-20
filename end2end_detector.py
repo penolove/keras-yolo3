@@ -2,6 +2,7 @@ import argparse
 
 import arrow
 import cv2
+import time
 from eyewitness.config import IN_MEMORY
 from eyewitness.detection_utils import DetectionResult
 from eyewitness.image_id import ImageId
@@ -44,14 +45,14 @@ parser.add_argument(
     help='the path used to store detection result records')
 
 parser.add_argument(
-    '--interval_ms', type=int, default=5000,
+    '--interval_s', type=int, default=5,
     help='the interval of image generation')
 
 
 class InMemoryImageProducer(ImageProducer):
-    def __init__(self, video_path, interval_ms=1000):
+    def __init__(self, video_path, interval_s):
         self.vid = cv2.VideoCapture(video_path)
-        self.interval_ms = interval_ms
+        self.interval_s = interval_s
         if not self.vid.isOpened():
             raise IOError("Couldn't open webcam or video")
 
@@ -65,7 +66,7 @@ class InMemoryImageProducer(ImageProducer):
                 self.vid.grab()
             _, frame = self.vid.read()
             yield Image.fromarray(swap_channel_rgb_bgr(frame))
-            cv2.waitKey(self.interval_ms)
+            time.sleep(self.interval_s)
 
 
 class YoloV3DetectorWrapper(ObjectDetector):
@@ -94,7 +95,7 @@ class YoloV3DetectorWrapper(ObjectDetector):
 if __name__ == '__main__':
     args = parser.parse_args()
     # image producer from webcam
-    image_producer = InMemoryImageProducer(0, interval_ms=args.interval_ms)
+    image_producer = InMemoryImageProducer(0, interval_s=args.interval_s)
 
     # object detector
     object_detector = YoloV3DetectorWrapper(args)
@@ -105,6 +106,7 @@ if __name__ == '__main__':
     # TODO: feedback_handler: webhook handling
 
     for image in image_producer.produce_image():
+
         image_id = ImageId(channel='demo', timestamp=arrow.now().timestamp, file_format='jpg')
         bbox_sqlite_handler.register_image(image_id, {})
         detection_result = object_detector.detect(image, image_id)
