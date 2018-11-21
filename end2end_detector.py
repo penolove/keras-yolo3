@@ -125,7 +125,7 @@ if __name__ == '__main__':
 
     # setup your line channel token and audience
     channel_access_token = os.environ.get('CHANNEL_ACCESS_TOKEN')
-    audience_ids = set([i for i in os.environ.get('YOUR_USER_ID').split(',')])
+    audience_ids = set([i for i in os.environ.get('YOUR_USER_ID', '').split(',')])
     if channel_access_token:
         line_annotation_sender = LineAnnotationSender(
             audience_ids=audience_ids,
