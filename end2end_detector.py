@@ -1,15 +1,17 @@
 import argparse
+import os
+from collections import Counter
 
 import arrow
 import cv2
 import time
-from eyewitness.config import IN_MEMORY
+from eyewitness.config import (IN_MEMORY, BBOX)
 from eyewitness.detection_utils import DetectionResult
 from eyewitness.image_id import ImageId
 from eyewitness.image_utils import (ImageProducer, swap_channel_rgb_bgr, ImageHandler)
 from eyewitness.object_detector import ObjectDetector
 from eyewitness.result_handler.sqlite_db_writer import BboxPeeweeSQLiteDbWriter
-
+from eyewitness.result_handler.line_detection_result_handler import LineAnnotationSender
 from PIL import Image
 
 from yolo import YOLO
@@ -42,11 +44,12 @@ parser.add_argument(
 
 parser.add_argument(
     '--db_path', type=str, default='::memory::',
-    help='the path used to store detection result records')
+    help='the path used to store detection result records'
+)
 
 parser.add_argument(
-    '--interval_s', type=int, default=5,
-    help='the interval of image generation')
+    '--interval_s', type=int, default=3, help='the interval of image generation'
+)
 
 
 class InMemoryImageProducer(ImageProducer):
@@ -83,13 +86,26 @@ class YoloV3DetectorWrapper(ObjectDetector):
             if score > self.threshold:
                 detected_objects.append([x1, y1, x2, y2, label, score, ''])
 
-        print("detected %s objects" % len(detected_objects))
+        detected_objs = Counter(i[4] for i in detected_objects)
+        print("detected %s objects: %s" % (len(detected_objects), detected_objs))
         image_dict = {
             'image_id': image_id,
             'detected_objects': detected_objects,
         }
         detection_result = DetectionResult(image_dict)
         return detection_result
+
+
+def image_url_handler(drawn_image_path):
+    """fake https image url, used to sent to line"""
+    return 'https://upload.wikimedia.org/wikipedia/en/a/a6/Pok%C3%A9mon_Pikachu_art.png'
+
+
+def line_detection_result_filter(detection_result):
+    """
+    used to check if sent notification or not
+    """
+    return any(i.label == 'person' for i in detection_result.detected_objects)
 
 
 if __name__ == '__main__':
@@ -99,9 +115,25 @@ if __name__ == '__main__':
 
     # object detector
     object_detector = YoloV3DetectorWrapper(args)
-    bbox_sqlite_handler = BboxPeeweeSQLiteDbWriter(args.db_path)
 
-    # TODO: Line detection result handler
+    # detection result handlers
+    result_handlers = []
+
+    # update image_info drawn_image_path, insert detection result
+    bbox_sqlite_handler = BboxPeeweeSQLiteDbWriter(args.db_path)
+    result_handlers.append(bbox_sqlite_handler)
+
+    # setup your line channel token and audience
+    channel_access_token = os.environ.get('CHANNEL_ACCESS_TOKEN')
+    audience_ids = set([i for i in os.environ.get('YOUR_USER_ID').split(',')])
+    if channel_access_token:
+        line_annotation_sender = LineAnnotationSender(
+            audience_ids=audience_ids,
+            channel_access_token=channel_access_token,
+            image_url_handler=image_url_handler,
+            detection_result_filter=line_detection_result_filter,
+            detection_method=BBOX)
+        result_handlers.append(line_annotation_sender)
 
     # TODO: feedback_handler: webhook handling
 
@@ -118,5 +150,5 @@ if __name__ == '__main__':
         ImageHandler.save(image, drawn_image_path)
         detection_result.image_dict['drawn_image_path'] = drawn_image_path
 
-        # update image_info drawn_image_path, insert detection result
-        bbox_sqlite_handler.handle(detection_result)
+        for result_handler in result_handlers:
+            result_handler.handle(detection_result)
