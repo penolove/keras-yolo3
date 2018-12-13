@@ -65,4 +65,4 @@ if __name__ == '__main__':
     image_id = ImageId(channel='demo', timestamp=arrow.now().timestamp, file_format='jpg')
     detection_result = object_detector.detect(image, image_id)
     ImageHandler.draw_bbox(image, detection_result.detected_objects)
-    ImageHandler.save(image, "demo/drawn_image.jpg")
+    ImageHandler.save(image, "detected_image/drawn_image.jpg")
