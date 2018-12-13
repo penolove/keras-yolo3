@@ -10,8 +10,9 @@ from eyewitness.detection_utils import DetectionResult
 from eyewitness.image_id import ImageId
 from eyewitness.image_utils import (ImageProducer, swap_channel_rgb_bgr, ImageHandler)
 from eyewitness.object_detector import ObjectDetector
-from eyewitness.result_handler.sqlite_db_writer import BboxPeeweeSQLiteDbWriter
+from eyewitness.result_handler.db_writer import BboxPeeweeDbWriter
 from eyewitness.result_handler.line_detection_result_handler import LineAnnotationSender
+from peewee import SqliteDatabase
 from PIL import Image
 
 from yolo import YOLO
@@ -97,8 +98,12 @@ class YoloV3DetectorWrapper(ObjectDetector):
 
 
 def image_url_handler(drawn_image_path):
-    """fake https image url, used to sent to line"""
-    return 'https://upload.wikimedia.org/wikipedia/en/a/a6/Pok%C3%A9mon_Pikachu_art.png'
+    """if site_domain not set in env, will pass a pickchu image"""
+    site_domain = os.environ.get('site_domain')
+    if site_domain is None:
+        return 'https://upload.wikimedia.org/wikipedia/en/a/a6/Pok%C3%A9mon_Pikachu_art.png'
+    else:
+        return '%s/%s'%(site_domain, drawn_image_path)
 
 
 def line_detection_result_filter(detection_result):
@@ -120,25 +125,23 @@ if __name__ == '__main__':
     result_handlers = []
 
     # update image_info drawn_image_path, insert detection result
-    bbox_sqlite_handler = BboxPeeweeSQLiteDbWriter(args.db_path)
+    database = SqliteDatabase(args.db_path)
+    bbox_sqlite_handler = BboxPeeweeDbWriter(database)
     result_handlers.append(bbox_sqlite_handler)
 
     # setup your line channel token and audience
     channel_access_token = os.environ.get('CHANNEL_ACCESS_TOKEN')
-    audience_ids = set([i for i in os.environ.get('YOUR_USER_ID', '').split(',')])
     if channel_access_token:
         line_annotation_sender = LineAnnotationSender(
-            audience_ids=audience_ids,
             channel_access_token=channel_access_token,
             image_url_handler=image_url_handler,
             detection_result_filter=line_detection_result_filter,
-            detection_method=BBOX)
+            detection_method=BBOX,
+            update_audience_period=10,
+            database=database)
         result_handlers.append(line_annotation_sender)
 
-    # TODO: feedback_handler: webhook handling
-
     for image in image_producer.produce_image():
-
         image_id = ImageId(channel='demo', timestamp=arrow.now().timestamp, file_format='jpg')
         bbox_sqlite_handler.register_image(image_id, {})
         detection_result = object_detector.detect(image, image_id)
