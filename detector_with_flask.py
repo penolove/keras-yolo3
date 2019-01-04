@@ -99,9 +99,9 @@ def line_detection_result_filter(detection_result):
 
 if __name__ == '__main__':
     args = parser.parse_args()
-
+    detection_threshold = 0.7
     # object detector
-    object_detector = YoloV3DetectorWrapper(args)
+    object_detector = YoloV3DetectorWrapper(args, threshold=detection_threshold)
 
     # detection result handlers
     result_handlers = []
@@ -125,7 +125,8 @@ if __name__ == '__main__':
 
     flask_wrapper = BboxObjectDetectionFlaskWrapper(
         object_detector, bbox_sqlite_handler, result_handlers,
-        database=database, drawn_image_dir=args.drawn_image_dir)
+        database=database, drawn_image_dir=args.drawn_image_dir, 
+        detection_threshold=detection_threshold, collect_feedback_period=172800)
 
     params = {'host': args.detector_host, 'port': args.detector_port, 'threaded': False}
     flask_wrapper.app.run(**params)
