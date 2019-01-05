@@ -1,7 +1,7 @@
 import argparse
 
 import arrow
-from eyewitness.detection_utils import DetectionResult
+from eyewitness.detection_utils import (DetectionResult, BoundedBoxObject)
 from eyewitness.image_id import ImageId
 from eyewitness.object_detector import ObjectDetector
 from eyewitness.image_utils import ImageHandler
@@ -48,7 +48,7 @@ class YoloV3DetectorWrapper(ObjectDetector):
             label = self.core_model.class_names[label_class]
             y1, x1, y2, x2 = bbox
             if score > self.threshold:
-                detected_objects.append([x1, y1, x2, y2, label, score, ''])
+                detected_objects.append(BoundedBoxObject(x1, y1, x2, y2, label, score, ''))
 
         image_dict = {
             'image_id': image_id,

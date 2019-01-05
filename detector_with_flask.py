@@ -13,7 +13,7 @@ from eyewitness.result_handler.line_detection_result_handler import LineAnnotati
 from peewee import SqliteDatabase
 from PIL import Image
 
-from yolo import YOLO
+from  naive_detector import YoloV3DetectorWrapper
 
 
 # class YOLO defines the default value, so suppress any default here
@@ -56,30 +56,6 @@ parser.add_argument(
     '--drawn_image_dir', type=str, default=None,
     help='the path used to store drawn images'
 )
-
-
-class YoloV3DetectorWrapper(ObjectDetector):
-    def __init__(self, model_config, threshold=0.5):
-        self.core_model = YOLO(**vars(model_config))
-        self.threshold = threshold
-
-    def detect(self, image: Image, image_id: ImageId) -> DetectionResult:
-        (out_boxes, out_scores, out_classes) = self.core_model.predict(image)
-        detected_objects = []
-        for bbox, score, label_class in zip(out_boxes, out_scores, out_classes):
-            label = self.core_model.class_names[label_class]
-            y1, x1, y2, x2 = bbox
-            if score > self.threshold:
-                detected_objects.append([x1, y1, x2, y2, label, score, ''])
-
-        detected_objs = Counter(i[4] for i in detected_objects)
-        print("detected %s objects: %s" % (len(detected_objects), detected_objs))
-        image_dict = {
-            'image_id': image_id,
-            'detected_objects': detected_objects,
-        }
-        detection_result = DetectionResult(image_dict)
-        return detection_result
 
 
 def image_url_handler(drawn_image_path):
