@@ -16,7 +16,7 @@ from peewee import SqliteDatabase
 from PIL import Image
 
 from  naive_detector import YoloV3DetectorWrapper
-
+from yolo import YOLO
 
 # class YOLO defines the default value, so suppress any default here
 parser = argparse.ArgumentParser(argument_default=argparse.SUPPRESS)
