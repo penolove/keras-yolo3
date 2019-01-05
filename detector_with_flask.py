@@ -90,6 +90,15 @@ def image_url_handler(drawn_image_path):
     else:
         return '%s/%s' % (site_domain, drawn_image_path)
 
+def raw_image_url_handler(drawn_image_path):
+    """if site_domain not set in env, will pass a pickchu image"""
+    site_domain = os.environ.get('site_domain')
+    raw_image_path = drawn_image_path.replace('detected_image/', 'raw_image/')
+    if site_domain is None:
+        return 'https://upload.wikimedia.org/wikipedia/en/a/a6/Pok%C3%A9mon_Pikachu_art.png'
+    else:
+        return '%s/%s' % (site_domain, raw_image_path)
+
 
 def line_detection_result_filter(detection_result):
     """
@@ -119,6 +128,7 @@ if __name__ == '__main__':
         line_annotation_sender = LineAnnotationSender(
             channel_access_token=channel_access_token,
             image_url_handler=image_url_handler,
+            raw_image_url_handler=raw_image_url_handler,
             detection_result_filter=line_detection_result_filter,
             detection_method=BBOX,
             update_audience_period=10,
