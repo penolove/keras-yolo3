@@ -1,7 +1,8 @@
 import argparse
 
 import arrow
-from eyewitness.detection_utils import (DetectionResult, BoundedBoxObject)
+from eyewitness.detection_utils import DetectionResult
+from eyewitness.config import BoundedBoxObject
 from eyewitness.image_id import ImageId
 from eyewitness.object_detector import ObjectDetector
 from eyewitness.image_utils import ImageHandler
