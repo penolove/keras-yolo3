@@ -11,7 +11,6 @@ from eyewitness.object_detector import ObjectDetector
 from eyewitness.result_handler.db_writer import BboxPeeweeDbWriter
 from eyewitness.result_handler.line_detection_result_handler import LineAnnotationSender
 from peewee import SqliteDatabase
-from PIL import Image
 
 from  naive_detector import YoloV3DetectorWrapper
 from yolo import YOLO
