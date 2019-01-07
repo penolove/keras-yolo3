@@ -52,7 +52,7 @@ class YoloV3DetectorWrapper(ObjectDetector):
                 detected_objects.append(BoundedBoxObject(x1, y1, x2, y2, label, score, ''))
 
         image_dict = {
-            'image_id': image_id,
+            'image_id': image_obj.image_id,
             'detected_objects': detected_objects,
         }
         detection_result = DetectionResult(image_dict)
