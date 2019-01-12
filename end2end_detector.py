@@ -52,6 +52,10 @@ parser.add_argument(
     '--interval_s', type=int, default=3, help='the interval of image generation'
 )
 
+parser.add_argument(
+    '--raw_image_folder', type=str, default=None, help='store raw image to folder if given'
+)
+
 
 class InMemoryImageProducer(ImageProducer):
     def __init__(self, video_path, interval_s):
@@ -91,6 +95,7 @@ def line_detection_result_filter(detection_result):
 
 if __name__ == '__main__':
     args = parser.parse_args()
+    raw_image_folder = args.raw_image_folder
     # image producer from webcam
     image_producer = InMemoryImageProducer(0, interval_s=args.interval_s)
 
@@ -119,8 +124,17 @@ if __name__ == '__main__':
 
     for image in image_producer.produce_image():
         image_id = ImageId(channel='demo', timestamp=arrow.now().timestamp, file_format='jpg')
+        
+        # store the raw image or not
+        if raw_image_folder:
+            raw_image_path = "%s/%s_%s.%s" % (
+                raw_image_folder, image_id.channel, image_id.timestamp, image_id.file_format)
+            ImageHandler.save(image, raw_image_path)
+        else:
+            raw_image_path = None
+
         image_obj = Image(image_id, pil_image_obj=image)
-        bbox_sqlite_handler.register_image(image_id, {})
+        bbox_sqlite_handler.register_image(image_id, {RAW_IMAGE_PATH: raw_image_path})
         detection_result = object_detector.detect(image_obj)
 
         if len(detection_result.detected_objects) > 0:
