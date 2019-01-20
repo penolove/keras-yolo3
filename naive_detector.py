@@ -58,6 +58,10 @@ class YoloV3DetectorWrapper(ObjectDetector):
         detection_result = DetectionResult(image_dict)
         return detection_result
 
+    @property
+    def valid_labels(self):
+        return set(self.core_model.class_names)
+
 
 if __name__ == '__main__':
     model_config = parser.parse_args()
