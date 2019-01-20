@@ -34,5 +34,5 @@ if __name__ == '__main__':
     dataset_VOC_2007 = BboxDataSet(dataset_folder, 'VOC2007')
     object_detector = YoloV3DetectorWrapper(args, threshold=0.0)
     bbox_map_evaluator = BboxMAPEvaluator(test_set_only=False)
-    # which will lead to ~0.73 
+    # which will lead to ~0.73
     print(bbox_map_evaluator.evaluate(object_detector, dataset_VOC_2007))
