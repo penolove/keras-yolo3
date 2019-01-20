@@ -1,7 +1,10 @@
+import argparse
+
 from eyewitness.dataset_util import BboxDataSet
 from eyewitness.evaluation import BboxMAPEvaluator
 
-from  naive_detector import YoloV3DetectorWrapper
+from naive_detector import YoloV3DetectorWrapper
+from yolo import YOLO
 
 parser = argparse.ArgumentParser(argument_default=argparse.SUPPRESS)
 parser.add_argument(
@@ -24,24 +27,12 @@ parser.add_argument(
     help='Number of GPU to use, default: ' + str(YOLO.get_defaults("gpu_num"))
 )
 
-parser.add_argument(
-    '--db_path', type=str, default='::memory::',
-    help='the path used to store detection result records'
-)
-
-parser.add_argument(
-    '--interval_s', type=int, default=3, help='the interval of image generation'
-)
-
-parser.add_argument(
-    '--raw_image_folder', type=str, default=None, help='store raw image to folder if given'
-)
-
 
 if __name__ == '__main__':
     args = parser.parse_args()
     dataset_folder = 'VOC2007'
     dataset_VOC_2007 = BboxDataSet(dataset_folder, 'VOC2007')
-    object_detector = YoloV3DetectorWrapper(args)
+    object_detector = YoloV3DetectorWrapper(args, threshold=0.0)
     bbox_map_evaluator = BboxMAPEvaluator(test_set_only=False)
+    # which will lead to ~0.73 
     print(bbox_map_evaluator.evaluate(object_detector, dataset_VOC_2007))
