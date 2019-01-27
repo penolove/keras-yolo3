@@ -6,6 +6,7 @@ from collections import Counter
 from eyewitness.flask_server import BboxObjectDetectionFlaskWrapper
 from eyewitness.config import BBOX
 from eyewitness.detection_utils import DetectionResult
+from eyewitness.detection_result_filter import FeedbackBboxDeNoiseFilter
 from eyewitness.image_id import ImageId
 from eyewitness.object_detector import ObjectDetector
 from eyewitness.result_handler.db_writer import BboxPeeweeDbWriter
@@ -92,7 +93,6 @@ if __name__ == '__main__':
 
     # detection result handlers
     result_handlers = []
-
     # update image_info drawn_image_path, insert detection result
     database = SqliteDatabase(args.db_path)
     bbox_sqlite_handler = BboxPeeweeDbWriter(database)
@@ -111,10 +111,16 @@ if __name__ == '__main__':
             database=database)
         result_handlers.append(line_annotation_sender)
 
+    # denoise filter 
+    denoise_filters = []
+    denoise_filter = FeedbackBboxDeNoiseFilter(
+        database, detection_threshold=detection_threshold)
+    denoise_filters.append(denoise_filter)
+
     flask_wrapper = BboxObjectDetectionFlaskWrapper(
         object_detector, bbox_sqlite_handler, result_handlers,
         database=database, drawn_image_dir=args.drawn_image_dir, 
-        detection_threshold=detection_threshold, collect_feedback_period=172800)
+        detection_result_filters=denoise_filters)
 
     params = {'host': args.detector_host, 'port': args.detector_port, 'threaded': False}
     flask_wrapper.app.run(**params)
