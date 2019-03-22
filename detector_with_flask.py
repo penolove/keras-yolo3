@@ -1,19 +1,15 @@
 import argparse
 import os
 import logging
-from collections import Counter
 
 from eyewitness.flask_server import BboxObjectDetectionFlaskWrapper
 from eyewitness.config import BBOX
-from eyewitness.detection_utils import DetectionResult
 from eyewitness.detection_result_filter import FeedbackBboxDeNoiseFilter
-from eyewitness.image_id import ImageId
-from eyewitness.object_detector import ObjectDetector
 from eyewitness.result_handler.db_writer import BboxPeeweeDbWriter
 from eyewitness.result_handler.line_detection_result_handler import LineAnnotationSender
 from peewee import SqliteDatabase
 
-from  naive_detector import YoloV3DetectorWrapper
+from naive_detector import YoloV3DetectorWrapper
 from yolo import YOLO
 
 
@@ -66,6 +62,7 @@ def image_url_handler(drawn_image_path):
         return 'https://upload.wikimedia.org/wikipedia/en/a/a6/Pok%C3%A9mon_Pikachu_art.png'
     else:
         return '%s/%s' % (site_domain, drawn_image_path)
+
 
 def raw_image_url_handler(drawn_image_path):
     """if site_domain not set in env, will pass a pickchu image"""
