@@ -1,21 +1,18 @@
 import argparse
 import os
-from collections import Counter
 
 import arrow
 import cv2
 import time
 import PIL
 from eyewitness.config import (IN_MEMORY, BBOX, RAW_IMAGE_PATH)
-from eyewitness.detection_utils import DetectionResult
 from eyewitness.image_id import ImageId
 from eyewitness.image_utils import (ImageProducer, swap_channel_rgb_bgr, ImageHandler, Image)
-from eyewitness.object_detector import ObjectDetector
 from eyewitness.result_handler.db_writer import BboxPeeweeDbWriter
 from eyewitness.result_handler.line_detection_result_handler import LineAnnotationSender
 from peewee import SqliteDatabase
 
-from  naive_detector import YoloV3DetectorWrapper
+from naive_detector import YoloV3DetectorWrapper
 from yolo import YOLO
 
 # class YOLO defines the default value, so suppress any default here
@@ -83,7 +80,7 @@ def image_url_handler(drawn_image_path):
     if site_domain is None:
         return 'https://upload.wikimedia.org/wikipedia/en/a/a6/Pok%C3%A9mon_Pikachu_art.png'
     else:
-        return '%s/%s'%(site_domain, drawn_image_path)
+        return '%s/%s' % (site_domain, drawn_image_path)
 
 
 def line_detection_result_filter(detection_result):
