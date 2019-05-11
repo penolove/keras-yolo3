@@ -108,7 +108,7 @@ if __name__ == '__main__':
             database=database)
         result_handlers.append(line_annotation_sender)
 
-    # denoise filter 
+    # denoise filter
     denoise_filters = []
     denoise_filter = FeedbackBboxDeNoiseFilter(
         database, detection_threshold=detection_threshold)
@@ -116,7 +116,7 @@ if __name__ == '__main__':
 
     flask_wrapper = BboxObjectDetectionFlaskWrapper(
         object_detector, bbox_sqlite_handler, result_handlers,
-        database=database, drawn_image_dir=args.drawn_image_dir, 
+        database=database, drawn_image_dir=args.drawn_image_dir,
         detection_result_filters=denoise_filters)
 
     params = {'host': args.detector_host, 'port': args.detector_port, 'threaded': False}

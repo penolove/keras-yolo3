@@ -121,7 +121,7 @@ if __name__ == '__main__':
 
     for image in image_producer.produce_image():
         image_id = ImageId(channel='demo', timestamp=arrow.now().timestamp, file_format='jpg')
-        
+
         # store the raw image or not
         if raw_image_folder:
             raw_image_path = "%s/%s_%s.%s" % (
