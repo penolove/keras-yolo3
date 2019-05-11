@@ -39,10 +39,19 @@ parser.add_argument(
 
 class YoloV3DetectorWrapper(ObjectDetector):
     def __init__(self, model_config, threshold=0.5):
-        self.core_model = YOLO(**vars(model_config))
+        self.model_config = model_config
+        self.core_model = None
         self.threshold = threshold
 
+    def build(self):
+        if isinstance(self.model_config, dict):
+            self.core_model = YOLO(**self.model_config)
+        else:
+            self.core_model = YOLO(**vars(self.model_config))
+
     def detect(self, image_obj) -> DetectionResult:
+        if self.core_model is None:
+            self.build()
         (out_boxes, out_scores, out_classes) = self.core_model.predict(image_obj.pil_image_obj)
         detected_objects = []
         for bbox, score, label_class in zip(out_boxes, out_scores, out_classes):
