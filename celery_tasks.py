@@ -44,7 +44,8 @@ GLOBAL_OBJECT_DETECTOR = YoloV3DetectorWrapper(model_config, threshold=threshold
 DETECTION_RESULT_FILTERS = []
 DETECTION_RESULT_HANDLERS = []
 DATABASE = SqliteDatabase(SQLITE_DB_PATH)
-DETECTION_RESULT_HANDLERS.append(BboxPeeweeDbWriter(DATABASE))
+DB_RESULT_HANDLER = BboxPeeweeDbWriter(DATABASE)
+DETECTION_RESULT_HANDLERS.append(DB_RESULT_HANDLER)
 # setup your line channel token and audience
 if CHANNEL_ACCESS_TOKEN:
     line_annotation_sender = LineAnnotationSender(
@@ -85,7 +86,7 @@ def detect_image(params):
     raw_image_path = params.get('raw_image_path')
 
     image_obj = generate_image(
-        channel, timestamp, BboxPeeweeDbWriter, raw_image_path=raw_image_path)
+        channel, timestamp, DB_RESULT_HANDLER, raw_image_path=raw_image_path)
 
     with Stopwatch('Running inference on image {}...'.format(image_obj.raw_image_path)):
         detection_result = GLOBAL_OBJECT_DETECTOR.detect(image_obj)
