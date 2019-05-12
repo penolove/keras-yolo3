@@ -56,7 +56,9 @@ parser.add_argument(
 
 
 def image_url_handler(drawn_image_path):
-    """if site_domain not set in env, will pass a pickchu image"""
+    """if site_domain not set in env, will pass a pickchu image
+    used for generate the detected image url for LineAnnotationSender
+    """
     site_domain = os.environ.get('site_domain')
     if site_domain is None:
         return 'https://upload.wikimedia.org/wikipedia/en/a/a6/Pok%C3%A9mon_Pikachu_art.png'
@@ -65,7 +67,9 @@ def image_url_handler(drawn_image_path):
 
 
 def raw_image_url_handler(drawn_image_path):
-    """if site_domain not set in env, will pass a pickchu image"""
+    """if site_domain not set in env, will pass a pickchu image
+    used for generate the raw image url for LineAnnotationSender
+    """
     site_domain = os.environ.get('site_domain')
     raw_image_path = drawn_image_path.replace('detected_image/', 'raw_image/')
     if site_domain is None:
