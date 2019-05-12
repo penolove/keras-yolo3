@@ -1,5 +1,6 @@
-eyewitness==1.0.6
+eyewitness==1.0.8
 opencv-python
 matplotlib
 celery==4.3.0
 gevent
+bistiming
