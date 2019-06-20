@@ -1,4 +1,4 @@
-eyewitness==1.0.9
+eyewitness==1.0.10
 opencv-python
 matplotlib
 celery==4.3.0
