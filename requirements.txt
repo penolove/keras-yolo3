@@ -4,3 +4,4 @@ matplotlib
 celery==4.3.0
 gevent
 bistiming
+line-bot-sdk
