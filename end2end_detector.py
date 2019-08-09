@@ -9,11 +9,11 @@ from eyewitness.config import (IN_MEMORY, BBOX, RAW_IMAGE_PATH)
 from eyewitness.image_id import ImageId
 from eyewitness.image_utils import (ImageProducer, swap_channel_rgb_bgr, ImageHandler, Image)
 from eyewitness.result_handler.db_writer import BboxPeeweeDbWriter
-from eyewitness.result_handler.line_detection_result_handler import LineAnnotationSender
 from peewee import SqliteDatabase
 
 from naive_detector import YoloV3DetectorWrapper
 from yolo import YOLO
+from line_detection_result_handler import LineAnnotationSender
 
 # class YOLO defines the default value, so suppress any default here
 parser = argparse.ArgumentParser(argument_default=argparse.SUPPRESS)

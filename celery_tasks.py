@@ -11,13 +11,13 @@ from eyewitness.detection_result_filter import FeedbackBboxDeNoiseFilter
 from eyewitness.image_id import ImageId
 from eyewitness.image_utils import ImageHandler, Image
 from eyewitness.result_handler.db_writer import BboxPeeweeDbWriter
-from eyewitness.result_handler.line_detection_result_handler import LineAnnotationSender
 from peewee import SqliteDatabase
 from bistiming import Stopwatch
 
 from naive_detector import YoloV3DetectorWrapper
 from detector_with_flask import (
     raw_image_url_handler, image_url_handler, line_detection_result_filter)
+from line_detection_result_handler import LineAnnotationSender
 
 from yolo import YOLO
 
